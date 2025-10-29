@@ -43,14 +43,6 @@ Are we failing specific age groups with poor medical care quality?
 
 Does keeping ICU patients longer lead to better outcomes or just higher costs?
 
-📊 Strategic Planning
-When should we hire temporary staff to handle predictable patient surges?
-
-Which departments need immediate hiring to stop turning away patients?
-
-How should we reallocate beds from underutilized services to overwhelmed ones?
-
-Where can we reduce staff without impacting patient care quality?
 
 ⚠️ Risk & Compliance
 Which services are at risk of complete staff burnout and collapse?
@@ -60,6 +52,7 @@ When did we violate acceptable care standards by refusing over half of patients?
 Which departments need emergency intervention before they completely fail?
 
 Are we prepared for the next flu season, or will our systems collapse again?
+
 
 
 

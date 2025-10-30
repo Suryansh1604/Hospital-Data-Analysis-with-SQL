@@ -1,67 +1,100 @@
-# 🏥 Hospital Performance Data Analytics Project
+# Hospital Data Analytics Project
 
 ## Project Overview
-
-This project involves a deep-dive analysis of hospital operational and patient data using SQL. The primary objective is to evaluate service efficiency, staff performance, and patient experience to identify critical areas for intervention and strategic investment. By answering key business questions related to patient refusals, resource allocation, and satisfaction consistency, the analysis provides a comprehensive framework for improving hospital management and patient care standards.
+This project involves a deep-dive analysis of weekly hospital service data, patient records, and staff schedules to assess operational efficiency, identify failure points, and provide strategic recommendations for improving patient care, staff morale, and resource allocation. The analysis focuses on key areas like patient refusal rates, bed capacity planning, patient satisfaction, staff-to-patient ratios, and the impact of external events (like flu or strikes).
 
 ## Problem Statement
-
-The hospital is facing challenges in key operational areas, including unacceptable patient refusal rates in certain services, mismatched bed capacity planning, and inconsistent patient satisfaction. The goal is to leverage data from weekly service logs, staff schedules, and patient records to diagnose the root causes of these inefficiencies and recommend data-driven solutions to enhance care quality and operational effectiveness.
+The hospital management needs a data-driven assessment to understand where services are failing patients, where resources are being misused (staff and beds), and what factors are negatively impacting patient satisfaction and staff performance. Specifically, there is a need to identify the services most at risk of staff burnout and the departments requiring emergency intervention to maintain care standards.
 
 ## Dataset Information
+The analysis utilizes a relational database (hospital) with tables such as services_weekly, patients, and staff_schedule. These tables contain weekly operational and performance metrics.
 
-The analysis utilizes a relational database named `hospital` with the following key tables:
+Key fields in the dataset include:
 
-- **services_weekly**: Contains weekly aggregate data for each service, including:
-  - `service`: The hospital department (e.g., 'emergency', 'ICU', 'surgery').
-  - `week`: The week number.
-  - `patients_request`, `patients_admitted`, `patients_refused`: Patient flow metrics.
-  - `available_beds`: Resource capacity.
-  - `patient_satisfaction`, `staff_morale`: Key performance indicators (KPIs).
-  - `event`: External factors like 'flu' or 'strike'.
+**services_weekly**: Service type (e.g., Emergency, ICU), patients requested/refused/admitted, available beds, patient satisfaction, staff morale, and event markers (flu, strike).
 
-- **staff_schedule**: Tracks staff attendance and roles across services:
-  - `staff_name`, `service`, `week`, `role` (e.g., 'doctor', 'nurse').
-  - `present`: A binary flag for staff attendance (1 for present, 0 for absent).
+**staff_schedule**: Staff name, service, role (Doctor, Nurse, etc.), and attendance status (present/absent).
 
-- **patients**: Individual patient records:
-  - `arrival_date`, `departure_date`: Metrics for length of stay.
-  - `satisfaction`, `age`: Patient demographic and experience data.
+**patients**: Patient demographics (age), service, arrival/departure dates, and final satisfaction score.
 
 ## Technical Skills and Tools
+**Database**: SQL
 
-- **Database**: SQL (Advanced concepts: CTEs, Window Functions like `lag()`, `lead()`, `ntile()`, and conditional aggregation).
+## Project Execution
 
-## Project Execution: Key Analytical Queries
+### Phase 1 - 4: Data Preparation & Engineering
+The initial phases involved structuring the data for analysis, which included joining relevant tables and calculating critical metrics directly within the queries.
 
-### 1. Service Failure and Capacity Mismatch
-**Goal**: Identify services failing patients and areas where resources (beds) are underutilized despite patient refusals.
+**Action**:
 
-- **Finding the Most Failing Service (Q1 A)**:  
-  **Insight**: Emergency service has the highest patient refusal rate (over 50% of requests), indicating an unacceptable standard of care and critical undercapacity or processing bottlenecks.
+- Calculated key operational metrics such as Patient Refusal Rate and Satisfaction per Bed.
 
-- **Identifying Mismatched Capacity (Q1 B)**:  
-  **Insight**: General Medicine is turning away the most patients while still having available beds, suggesting a problem with staffing or workflow rather than just physical bed capacity.
+- Developed metrics for capacity analysis like the Refusal-to-Available-Bed Ratio.
 
-### 2. Patient Experience and Investment Strategy
-**Goal**: Assess patient satisfaction consistency and determine where investment in additional beds or resources is most needed.
+- Used Window Functions (NTILE, LAG, LEAD, ROW_NUMBER) to determine staff-to-patient ratio rankings and identify staff absence streaks (abandoned posts).
 
-- **Service with Worst Experience vs. High Resources (Q2 A)**:  
-  **Insight**: General Medicine and Surgery consume high resources (many available beds) but yield low average patient satisfaction, suggesting poor service quality is not due to lack of physical beds.
+**Outcome**: A structured query-set that transformed raw operational data into actionable performance and risk indicators.
 
-- **Where to Invest in Additional Beds (Q2 C)**:  
-  **Insight**: General Medicine and ICU show a combination of high patient satisfaction and high patient refusals, suggesting that if more beds were available, the hospital could serve more patients without sacrificing quality.
+### Phase 5: Data Analysis
+**Task**: Perform an in-depth analysis using SQL queries to diagnose operational inefficiencies and performance risks.
 
-### 3. Staffing and Morale Analysis
-**Goal**: Evaluate staff-to-patient ratios, attendance, and morale to identify burnout risks and poor utilization.
+**Action**:
 
-- **Departments with Dangerously Low Staff-to-Patient Ratios (Q3 A)**:  
-  **Insight**: Surgery and General Medicine consistently show the lowest staff-to-patient ratios, pointing to high workloads that increase the risk of errors and staff burnout.
+1. **Identified Service Failure Rate**: Determined which service has the highest patient refusal rate.
+```sql
+SELECT
+    service,
+    (SUM(patients_refused) / SUM(patients_request) * 100) AS patient_refusal_rate
+FROM
+    services_weekly
+GROUP BY
+    service
+ORDER BY
+    patient_refusal_rate DESC;
+```
 
-- **Staff Absenteeism (Q3 B)**:  
-  **Insight**: Emergency Doctors and General Medicine Doctors/Nurses have an attendance rate of less than 60%, signaling that these roles/departments are letting the hospital down with poor attendance.
+2. **Analyzed Mismatched Capacity**: Pinpointed services refusing patients despite having available beds.
+```sql
+SELECT
+    service,
+    SUM(available_beds) - SUM(patients_admitted) AS bed_left,
+    SUM(patients_refused) AS patient_refused
+FROM
+    services_weekly
+GROUP BY
+    service
+HAVING
+    bed_left > 0 AND patient_refused > 0
+ORDER BY
+    bed_left DESC;
+```
 
-- **Services at Risk of Staff Burnout (Q5 A)**:  
-  **Insight**: General Medicine and Surgery are at the highest risk, primarily due to managing a high number of patients (totalpatients is high) while having a low average morale-per-patient score.
+3. **Assessed Staff Burnout Risk**: Ranked services by patient load and morale.
+```sql
+SELECT
+    service,
+    SUM(patients_admitted) AS totalpatients,
+    AVG(staff_morale) / SUM(patients_admitted) AS morale_per_patient
+FROM
+    services_weekly
+GROUP BY
+    service
+ORDER BY totalpatients DESC, morale_per_patient ASC;
+```
+
+**Outcome**: Identified critical issues in resource management, staff deployment, and patient care quality, leading to specific, targeted recommendations.
 
 ## Data Interpretation and Key Insights
+The analysis provides a clear, quantitative basis for making operational and strategic changes, focusing on patient experience and resource optimization.
+
+### Key Insights and Recommendations:
+
+1. **Critical Service Failure**: The Emergency service has an unacceptably high patient refusal rate (over 50%), requiring an immediate review of its triage and admission policies. Care standards were violated in multiple weeks with refusal rates between 65% and 80%.
+
+2. **Mismatched Capacity**: General Medicine is turning away the most patients while beds sit empty, suggesting a severe staffing or internal resource allocation bottleneck, not a physical bed shortage. More staff should be allocated.
+
+3. **Staffing & Attendance**: Doctors in Emergency and General Medicine, and Nurses in General Medicine have the lowest attendance (less than 60%). Staff strikes cause more cumulative damage than flu outbreaks.
+
+4. **Vulnerable Groups**: Old and Adult age groups have the lowest patient satisfaction, indicating a need for targeted improvements in care quality or communication for these demographics.
+
+5. **Resource Investment**: ICU and General Medicine should be prioritized for additional bed investment due to high patient satisfaction despite high refusal rates.

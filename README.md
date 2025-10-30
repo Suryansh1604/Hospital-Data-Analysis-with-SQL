@@ -1,72 +1,67 @@
-# Assessment of Hospital Adherence to Care Standards
+# 🏥 Hospital Performance Data Analytics Project
 
-## 1. Executive Summary
+## Project Overview
 
-This report provides a comprehensive assessment of the hospital's adherence to essential care standards, based on an analysis of operational, staffing, and patient data.
+This project involves a deep-dive analysis of hospital operational and patient data using SQL. The primary objective is to evaluate service efficiency, staff performance, and patient experience to identify critical areas for intervention and strategic investment. By answering key business questions related to patient refusals, resource allocation, and satisfaction consistency, the analysis provides a comprehensive framework for improving hospital management and patient care standards.
 
-The analysis reveals that the hospital is **failing to meet minimum care standards in multiple critical areas.** We are facing a systemic crisis, not an isolated one, characterized by:
+## Problem Statement
 
-* **Unacceptable Patient Refusal:** The Emergency service is turning away over 50% of patients, a critical violation of our primary mission.
-* **Critical Staffing Deficiencies:** Dangerously low staff-to-patient ratios in Surgery and General Medicine are exacerbated by severe absenteeism, particularly among key roles like Emergency doctors and General Medicine nurses.
-* **Mismatched Resource Management:** We are turning away patients in General Medicine while beds sit empty, indicating a critical logistical and staffing failure.
-* **Service-Level Collapse:** The Surgery and Emergency departments are in a "Danger Zone," suffering from a combination of low staff morale, poor patient satisfaction, and high patient refusal rates.
+The hospital is facing challenges in key operational areas, including unacceptable patient refusal rates in certain services, mismatched bed capacity planning, and inconsistent patient satisfaction. The goal is to leverage data from weekly service logs, staff schedules, and patient records to diagnose the root causes of these inefficiencies and recommend data-driven solutions to enhance care quality and operational effectiveness.
 
-Immediate and decisive intervention is required to prevent a further collapse in care, mitigate patient safety risks, and address the staff burnout that is fueling this crisis.
+## Dataset Information
 
-## 2. Key Findings: Violations of Care Standards
+The analysis utilizes a relational database named `hospital` with the following key tables:
 
-Our analysis was structured around key performance indicators that measure adherence to standards of access, safety, and quality.
+- **services_weekly**: Contains weekly aggregate data for each service, including:
+  - `service`: The hospital department (e.g., 'emergency', 'ICU', 'surgery').
+  - `week`: The week number.
+  - `patients_request`, `patients_admitted`, `patients_refused`: Patient flow metrics.
+  - `available_beds`: Resource capacity.
+  - `patient_satisfaction`, `staff_morale`: Key performance indicators (KPIs).
+  - `event`: External factors like 'flu' or 'strike'.
 
-### Standard 1: Access to Care (Patient Intake & Refusal)
+- **staff_schedule**: Tracks staff attendance and roles across services:
+  - `staff_name`, `service`, `week`, `role` (e.g., 'doctor', 'nurse').
+  - `present`: A binary flag for staff attendance (1 for present, 0 for absent).
 
-**Finding:** We are failing our standard for providing accessible care.
-* **Emergency Service Collapse (Query 1A):** The Emergency service has a patient refusal rate exceeding 50%. This is an unacceptable failure and represents the single greatest violation of our care standards.
-* **Systemic Failure (Query 5B):** This is not an isolated event. Patient refusal rates exceeded 50-80% during multiple weeks (e.g., Week 5, 12, 2, 8, 18), indicating a recurring and unresolved systemic breakdown.
-* **Mismatched Capacity (Query 1B):** We are refusing patients in General Medicine despite having available beds. This department has the highest ratio of "patients refused" to "beds left," proving our bottleneck is **staffing and logistics**, not physical capacity.
+- **patients**: Individual patient records:
+  - `arrival_date`, `departure_date`: Metrics for length of stay.
+  - `satisfaction`, `age`: Patient demographic and experience data.
 
-### Standard 2: Patient Safety & Staffing Levels
+## Technical Skills and Tools
 
-**Finding:** We are operating with dangerously low staffing, directly compromising patient safety.
-* **Unsafe Ratios (Query 3A):** Surgery and General Medicine consistently operate with the lowest staff-to-patient ratios, placing both patients and staff at risk.
-* **Chronic Absenteeism (Query 3B):** This is not just a scheduling problem; it's an attendance crisis.
-    * **Emergency (Doctors):** Have an attendance rate below 60%.
-    * **Surgery (Nursing Assistants):** Have an attendance rate below 60%.
-    * **General Medicine (Doctors & Nurses):** Have attendance rates below 60%.
-    It is impossible to meet care standards when essential staff are not present.
-* **Abandoned Posts (Query 3D):** Several staff members (e.g., Angela Lopez, Alison Hill) have absence streaks of 2-3 consecutive weeks, suggesting they have abandoned their posts, further crippling their departments.
+- **Database**: SQL (Advanced concepts: CTEs, Window Functions like `lag()`, `lead()`, `ntile()`, and conditional aggregation).
 
-### Standard 3: Quality of Patient Experience
+## Project Execution: Key Analytical Queries
 
-**Finding:** Our patient satisfaction scores are inconsistent and reveal a clear failure to care for specific demographics.
-* **Failing Key Demographics (Query 4C):** We are failing our **"Old"** and **"Adult"** patients, who report the lowest average satisfaction. This indicates a potential bias or gap in our care protocols for these age groups.
-* **Inconsistent Service (Query 4B):** Surgery and Emergency, despite their other issues, deliver the most *consistent* satisfaction. This suggests that when they *can* provide care, it is stable. The problem is the *access* to that care.
-* **Impact of Long Stays (Query 4A & 4D):** Keeping patients longer, particularly in the ICU, generally *improves* satisfaction. This is a positive sign that our clinical teams (when resourced) are doing good work. We are not "rushing" patients out to their detriment.
+### 1. Service Failure and Capacity Mismatch
+**Goal**: Identify services failing patients and areas where resources (beds) are underutilized despite patient refusals.
 
-### Standard 4: Staff Sustainability & Morale
+- **Finding the Most Failing Service (Q1 A)**:  
+  **Insight**: Emergency service has the highest patient refusal rate (over 50% of requests), indicating an unacceptable standard of care and critical undercapacity or processing bottlenecks.
 
-**Finding:** Our staff is at a breaking point, and we are not prepared for further shocks.
-* **High Burnout Risk (Query 5A):** General Medicine and Surgery are at the highest risk of staff burnout. They have the largest patient loads combined with low morale-per-patient, an unsustainable combination.
-* **Impact of Shocks (Query 1D):** Staff "strikes" cause significantly more damage to morale than "flu" outbreaks. This indicates that internal, manageable conflicts are our greatest self-inflicted wound.
-* **Wasted Resources (Query 3C):** While some departments are understaffed, Emergency and ICU have periods of high staff presence with low patient admissions, indicating poor resource planning and wasted salary costs that could be re-allocated to services in crisis.
+- **Identifying Mismatched Capacity (Q1 B)**:  
+  **Insight**: General Medicine is turning away the most patients while still having available beds, suggesting a problem with staffing or workflow rather than just physical bed capacity.
 
-## 3. Priority Interventions: Departments in Crisis
+### 2. Patient Experience and Investment Strategy
+**Goal**: Assess patient satisfaction consistency and determine where investment in additional beds or resources is most needed.
 
-Based on a composite analysis of morale, satisfaction, and refusal rates (Query 5C), two departments require immediate emergency intervention.
+- **Service with Worst Experience vs. High Resources (Q2 A)**:  
+  **Insight**: General Medicine and Surgery consume high resources (many available beds) but yield low average patient satisfaction, suggesting poor service quality is not due to lack of physical beds.
 
-1.  **Surgery (In Danger):**
-    * **Reason:** Critically low staff morale and low patient satisfaction.
-    * **Root Cause:** Dangerously low staff-to-patient ratios (Query 3A) and high absenteeism from Nursing Assistants (Query 3B).
-    * **Action:** Must immediately address staffing ratios and investigate the root cause of low morale and attendance.
+- **Where to Invest in Additional Beds (Q2 C)**:  
+  **Insight**: General Medicine and ICU show a combination of high patient satisfaction and high patient refusals, suggesting that if more beds were available, the hospital could serve more patients without sacrificing quality.
 
-2.  **Emergency (In Danger):**
-    * **Reason:** Low patient satisfaction and critically high patient refusals.
-    * **Root Cause:** >50% refusal rate (Query 1A) and <60% attendance from Doctors (Query 3B).
-    * **Action:** Needs an immediate, top-to-bottom audit of its intake process and a formal investigation into the Doctor attendance crisis.
+### 3. Staffing and Morale Analysis
+**Goal**: Evaluate staff-to-patient ratios, attendance, and morale to identify burnout risks and poor utilization.
 
-## 4. Recommendations for Adherence to Standards
+- **Departments with Dangerously Low Staff-to-Patient Ratios (Q3 A)**:  
+  **Insight**: Surgery and General Medicine consistently show the lowest staff-to-patient ratios, pointing to high workloads that increase the risk of errors and staff burnout.
 
-1.  **Triage the Emergency Department (Immediate):** The 50%+ refusal rate is a complete failure of our primary public duty. This is the hospital's #1 priority.
-2.  **Re-staff General Medicine (Immediate):** The "mismatched capacity" (Query 1B) must be solved. This is a staffing crisis, not a bed crisis. Allocate an emergency float pool of nurses and doctors to this service.
-3.  **Launch HR Intervention (Urgent):** Address the <60% attendance rates in Emergency, Surgery, and General Medicine. This is a non-negotiable prerequisite for any other solution to work.
-4.  **Invest in Beds (Strategic):** General Medicine and ICU are the best candidates for future bed investment (Query 2C). They have high patient satisfaction despite high demand, meaning they deliver good care when they can.
-5.  **Review Care for Older Adults (Medium-Term):** Launch a review of care protocols for the "Old" and "Adult" demographics (Query 4C) to understand and fix why their satisfaction is lowest.
+- **Staff Absenteeism (Q3 B)**:  
+  **Insight**: Emergency Doctors and General Medicine Doctors/Nurses have an attendance rate of less than 60%, signaling that these roles/departments are letting the hospital down with poor attendance.
+
+- **Services at Risk of Staff Burnout (Q5 A)**:  
+  **Insight**: General Medicine and Surgery are at the highest risk, primarily due to managing a high number of patients (totalpatients is high) while having a low average morale-per-patient score.
+
+## Data Interpretation and Key Insights
